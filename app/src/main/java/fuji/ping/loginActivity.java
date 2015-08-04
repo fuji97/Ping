@@ -1,11 +1,12 @@
 package fuji.ping;
 
+import android.app.Activity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class loginActivity extends AppCompatActivity {
+public class loginActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
