@@ -1,0 +1,34 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".loginActivity"
+    android:background="#4caf50">
+
+    <ImageView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:src="@drawable/logo"
+        android:contentDescription="@string/pingLogo"
+        android:id="@+id/logoPing"
+        android:layout_marginTop="@dimen/splash_logo_top_margin" />
+
+    <EditText
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/usernameText"
+        android:inputType="textEmailAddress"
+        android:id="@+id/etUsername"
+        android:layout_margin="@dimen/abc_edit_text_inset_top_material" />
+
+    <EditText
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/usernameText"
+        android:inputType="textEmailAddress"
+        android:password="true"
+        android:id="@+id/etPassword"
+        android:layout_margin="@dimen/abc_edit_text_inset_top_material" />
+</LinearLayout>
