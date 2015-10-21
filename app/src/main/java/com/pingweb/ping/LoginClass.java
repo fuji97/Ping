@@ -1,24 +1,48 @@
 package com.pingweb.ping;
 
+import android.content.Intent;
 import android.util.Log;
 
 /**
  * Created by Federico on 15/09/2015.
  */
-public class LoginClass_old {
+public class LoginClass {
+    public final static String RESULT = "result";
+    public final static String TOKEN = "token";
+
     public final static String RESULT_OK = "result_ok";
     public final static String ERROR_CONNECTION = "error_connection";
     public final static String WRONG_CREDENTIALS = "wrong_credentials";
 
-    private static final String TAG = "LoginClass_old";
+    private static final String TAG = "LoginClass";
 
+    public final static boolean confirmLogin(String mUsername, String mPassword) {
+        // TODO
+        return true;
+    }
+
+    public final static boolean confirmLogin(String mToken) {
+        // TODO
+        return true;
+    }
+
+    public final static Intent getAuthToken(String mUsername, String mPassword) {
+        final Intent intent = new Intent();
+        // TODO
+        return intent;
+    }
+}
+
+/*
+    *** OLD VERSION ***
     private String username;
+
     private String password;
     private String googleSign;
     private String facebookSign;
     private PingUser loggedUser;
 
-    public LoginClass_old() {
+    public LoginClass() {
         setUsername("");
         setPassword("");
         setGoogleSign("");
@@ -26,7 +50,7 @@ public class LoginClass_old {
         Log.d(TAG,"Empty LoginClass created");
     }
 
-    public LoginClass_old(String mUsername, String mPassword) {
+    public LoginClass(String mUsername, String mPassword) {
         setUsername(mUsername);
         setPassword(mPassword);
         Log.d(TAG, "LoginClass created with username: " + mUsername);
@@ -79,3 +103,4 @@ public class LoginClass_old {
         }
     }
 }
+*/
