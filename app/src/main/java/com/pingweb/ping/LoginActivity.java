@@ -6,13 +6,10 @@ import android.accounts.AccountManager;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
-import android.app.Activity;
-import android.app.Dialog;
+import android.app.AlertDialog;
 import android.app.LoaderManager.LoaderCallbacks;
-import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.CursorLoader;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
@@ -50,13 +47,14 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Loade
     public static final String PARAM_USERNAME = "com.pingweb.ping.username";
     public static final String PARAM_AUTHTOKEN_TYPE = "com.pingweb.ping.authtokenType";
 
+    public static final String ARG_ACCOUNT_TYPE = "com.pingweb.ping.account_type";
+    public static final String ARG_AUTH_TYPE = "com.pingweb.ping.ARG_AUTH_TYPE";
+    public static final String ARG_IS_ADDING_NEW_ACCOUNT = "com.pingweb.ping.ARG_IS_ADDING_NEW_ACCOUNT";
+
     /**
      * A dummy authentication store containing known user names and passwords.
      * TODO: remove after connecting to a real authentication system.
      */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world"
-    };
 
     private static final String TAG = "AuthenticatorActivity";
     private AccountManager mAccountManager;
@@ -126,11 +124,8 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Loade
         Log.i(TAG, "loading data from Intent");
         final Intent intent = getIntent();
         mUsername = intent.getStringExtra(PARAM_USERNAME);
-        mAuthtokenType = intent.getStringExtra(PARAM_AUTHTOKEN_TYPE);
-        mRequestNewAccount = mUsername == null;
-        mConfirmCredentials =
-                intent.getBooleanExtra(PARAM_CONFIRMCREDENTIALS, false);
-        mEmailView.setText(mUsername);
+        if (!TextUtils.isEmpty(mUsername))
+            mEmailView.setText(mUsername);
     }
 
     private void populateAutoComplete() {
@@ -294,16 +289,7 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Loade
      *
      * @param result the confirmCredentials result.
      */
-    protected void finishConfirmCredentials(boolean result) {
-        Log.i(TAG, "finishConfirmCredentials()");
-        final Account account = new Account(mUsername, PingAuthenticator.ACCOUNT_TYPE);
-        mAccountManager.setPassword(account, mPassword);
-        final Intent intent = new Intent();
-        intent.putExtra(AccountManager.KEY_BOOLEAN_RESULT, result);
-        setAccountAuthenticatorResult(intent.getExtras());
-        setResult(RESULT_OK, intent);
-        finish();
-    }
+
 
     /**
      *
@@ -314,32 +300,7 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Loade
      *
      */
 
-    protected void finishLogin() {
-        Log.i(TAG, "finishLogin()");
-        final Account account = new Account(mUsername, PingAuthenticator.ACCOUNT_TYPE);
 
-        if (mRequestNewAccount) {
-            mAccountManager.addAccountExplicitly(account, mPassword, null);
-            // Set contacts sync for this account.
-            ContentResolver.setSyncAutomatically(account,
-                    ContactsContract.AUTHORITY, true);
-        } else {
-            mAccountManager.setPassword(account, mPassword);
-        }
-        final Intent intent = new Intent();
-        mAuthtoken = mPassword;
-        intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, mUsername);
-        intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, PingAuthenticator.ACCOUNT_TYPE);
-        if (mAuthtokenType != null
-                && mAuthtokenType.equals(PingAuthenticator.AUTHTOKEN_TYPE)) {
-            intent.putExtra(AccountManager.KEY_AUTHTOKEN, mAuthtoken);
-        }
-        setAccountAuthenticatorResult(intent.getExtras());
-        setResult(RESULT_OK, intent);
-        finish();
-        Intent intentAct = new Intent(this,HomeActivity.class);
-        startActivity(intentAct);
-    }
 
     /**
      * Use an AsyncTask to fetch the user's email addresses on a background thread, and update
@@ -384,50 +345,26 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Loade
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
      */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
+    public class UserLoginTask extends AsyncTask<Void, Void, Intent> {
 
-        private final String mEmail;
-        private final String mPassword;
+        private final String email;
+        private final String password;
 
-        UserLoginTask(String email, String password) {
-            mEmail = email;
-            mPassword = password;
+        UserLoginTask(String mEmail, String mPassword) {
+            email = mEmail;
+            password = mPassword;
         }
 
         @Override
-        protected Boolean doInBackground(Void... params) {
+        protected Intent doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
 
-            try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                return false;
-            }
-
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
-                }
-            }
-
-            finishLogin();
-            return true;
+            return null;
         }
 
         @Override
-        protected void onPostExecute(final Boolean success) {
-            mAuthTask = null;
-            showProgress(false);
+        protected void onPostExecute(final Intent response) {
 
-            if (success) {
-                finish();
-            } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
-            }
         }
 
         @Override
