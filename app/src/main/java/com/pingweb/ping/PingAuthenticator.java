@@ -33,6 +33,7 @@ public class PingAuthenticator extends AbstractAccountAuthenticator {
 
     @Override
     public Bundle addAccount(AccountAuthenticatorResponse response, String accountType, String authTokenType, String[] requiredFeatures, Bundle options) throws NetworkErrorException {
+
         final Intent intent = new Intent(mContext, LoginActivity.class);
         return null;
     }
