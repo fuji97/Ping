@@ -6,9 +6,9 @@ import android.accounts.AccountManager;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
-import android.app.AlertDialog;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -31,6 +31,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,8 +51,13 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Loade
     private static final String TAG = "AuthenticatorActivity";
     private AccountManager mAccountManager;
     private Thread mAuthThread;
-    private String mAuthtoken;
-    private String mAuthtokenType;
+    private String mAuthToken;
+    private String mAuthTokenType;
+    private String mPassword;
+    private String mUsername;
+    private String mAccountType;
+    private Account mAccount;
+
 
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
@@ -66,8 +72,6 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Loade
 
     /** for posting authentication attempts back to UI thread */
     private final Handler mHandler = new Handler();
-    private String mPassword;
-    private String mUsername;
 
     /** Was the original caller asking for an entirely new account? */
     protected boolean mRequestNewAccount = false;
@@ -111,10 +115,16 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Loade
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
 
-        // Checking intent for optional operation
         Log.d(TAG, "Starting checking intent");
         mAccountManager = AccountManager.get(this);
         final Intent intent = getIntent();
+
+        // Extract need data from intent
+        mAuthTokenType = intent.getStringExtra(PingAuthenticator.ARG_AUTHTOKEN_TYPE);
+        mAccountType = intent.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE);
+        mAccount = intent.getParcelableExtra(AccountManager.KEY_ACCOUNTS);
+
+        // Checking intent for optional operation
         mUsername = intent.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
         if (!TextUtils.isEmpty(mUsername)) {
             Log.i(TAG, "Email found, setting textbox to " + mUsername);
@@ -125,6 +135,20 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Loade
         if (errorCode != -1) {
             // Error code found, retrieve message and make toast
             final String errorMessage = intent.getStringExtra(AccountManager.KEY_ERROR_MESSAGE);
+            Log.i(TAG, "Error during server login, error code: " + errorCode + " - Error message: " + errorMessage);
+            final Context context = getApplicationContext();
+            final int duration = Toast.LENGTH_LONG;
+            String toastText;
+            switch (errorCode) {
+                case ServerInterface.ERROR_CONNECTION:
+                    toastText = getString(R.string.connection_error);
+                case ServerInterface.WRONG_CREDENTIALS:
+                    toastText = getString(R.string.wrong_credentials);
+                default:
+                    toastText = getString(R.string.general_error) + errorMessage;
+            }
+            Toast toast = Toast.makeText(context, toastText, duration);
+            toast.show();
         }
     }
 
@@ -186,7 +210,7 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Loade
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(mUsername, mPassword);
+            mAuthTask = new UserLoginTask(mUsername, mPassword, mAuthToken, mAccountType, mAccount);
             mAuthTask.execute((Void) null);
         }
     }
@@ -283,26 +307,6 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Loade
     }
 
     /**
-     * Called when response is received from the server for confirm credentials
-     * request. See onAuthenticationResult(). Sets the
-     * AccountAuthenticatorResult which is sent back to the caller.
-     *
-     * @param result the confirmCredentials result.
-     */
-
-
-    /**
-     *
-     * Called when response is received from the server for authentication
-     * request. See onAuthenticationResult(). Sets the
-     * AccountAuthenticatorResult which is sent back to the caller. Also sets
-     * the authToken in AccountManager for this account.
-     *
-     */
-
-
-
-    /**
      * Use an AsyncTask to fetch the user's email addresses on a background thread, and update
      * the email text field with results on the main UI thread.
      */
@@ -349,22 +353,56 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Loade
 
         private final String email;
         private final String password;
+        private final String authType;
+        private final String accountType;
+        private Account account;
 
-        UserLoginTask(String mEmail, String mPassword) {
+        UserLoginTask(String mEmail, String mPassword, String mAuthType, String mAccountType, Account mAccount) {
+            Log.d(TAG, "Started AsyncTask for login operation");
             email = mEmail;
             password = mPassword;
+            authType = mAuthType;
+            accountType = mAccountType;
+            account = mAccount;
         }
 
         @Override
         protected Intent doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
-
-            return null;
+            final Intent serverResponse = ServerInterface.confirmCredentials(email,password);
+            return serverResponse;
         }
 
         @Override
         protected void onPostExecute(final Intent response) {
-
+            final int resultCode = response.getIntExtra(AccountManager.KEY_ERROR_CODE, -1);
+            if (resultCode == ServerInterface.RESULT_OK) {
+                if (account != null) {
+                    final String accountName = mAccountManager.getUserData(account, AccountManager.KEY_ACCOUNT_NAME);
+                    if (!TextUtils.equals(accountName, email)) {
+                        final String currentAccountType = mAccountManager.getUserData(account, AccountManager.KEY_ACCOUNT_TYPE);
+                        final String currentTokenType = mAccountManager.getUserData(account, PingAuthenticator.ARG_AUTHTOKEN_TYPE);
+                        mAccountManager.removeAccountExplicitly(account);
+                        account = new Account(email, currentAccountType);
+                    }
+                }
+            } else if (resultCode != -1) {
+                // Error code found, retrieve message and make toast
+                final String errorMessage = response.getStringExtra(AccountManager.KEY_ERROR_MESSAGE);
+                Log.i(TAG, "Error during server login, error code: " + resultCode + " - Error message: " + errorMessage);
+                final Context context = getApplicationContext();
+                final int duration = Toast.LENGTH_LONG;
+                String toastText;
+                switch (resultCode) {
+                    case ServerInterface.ERROR_CONNECTION:
+                        toastText = getString(R.string.connection_error);
+                    case ServerInterface.WRONG_CREDENTIALS:
+                        toastText = getString(R.string.wrong_credentials);
+                    default:
+                        toastText = getString(R.string.general_error) + errorMessage;
+                }
+                Toast toast = Toast.makeText(context, toastText, duration);
+                toast.show();
+            }
         }
 
         @Override

@@ -15,4 +15,7 @@
     <string name="title_activity_splash">Avvio di Ping</string>
     <string name="ui_activity_authenticating">Attendi...</string>
     <string name="account_preferences_title">Ping</string>
+    <string name="wrong_credentials">Email o password errata</string>
+    <string name="connection_error">Impossibile connettersi al server, controlla la tua connessione a Internet</string>
+    <string name="general_error">Errore generale: </string>
 </resources>

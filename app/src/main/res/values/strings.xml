@@ -25,4 +25,7 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="account_preferences_title">Ping</string>
+    <string name="wrong_credentials">Email or password is wrong</string>
+    <string name="connection_error">Cannot connect to the server, check your Internet connection</string>
+    <string name="general_error">Generic error:</string>
 </resources>

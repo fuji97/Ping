@@ -24,12 +24,19 @@ public class ServerInterface {
 
     private static final String TAG = "ServerInterface";
 
-    public final static boolean confirmLogin(String mUsername, String mPassword, String tokenType) {
-        return TextUtils.equals(mUsername,DUMMY_USERNAME) && TextUtils.equals(mPassword,DUMMY_PASSWORD) ? true : false;
+    public final static Intent confirmCredentials(String mUsername, String mPassword) {
+        final Intent intent = new Intent();
+        if(TextUtils.equals(mUsername,DUMMY_USERNAME) && TextUtils.equals(mPassword,DUMMY_PASSWORD)) {
+            intent.putExtra(RESULT, RESULT_OK);
+        } else {
+            intent.putExtra(RESULT, WRONG_CREDENTIALS);
+            intent.putExtra(ERROR_MESSAGE, "Invalid credentials");
+        }
         // TODO
+        return intent;
     }
 
-    public final static boolean confirmLogin(String mToken, String tokenType) {
+    public final static boolean confirmToken(String mToken, String tokenType) {
         return TextUtils.equals(mToken,DUMMY_TOKEN) ? true : false;
         // TODO
     }

@@ -1,11 +1,15 @@
 package com.pingweb.ping;
 
+import android.util.Log;
+
 import java.util.Arrays;
 
 /**
  * Created by Federico on 04/11/2015.
  */
 public class AuthTypeParser {
+    public static final String TAG = "AuthTypeParser";
+
     public static final String BASIC_INFO = "basic";
     public static final String READ = "read";
     public static final String WRITE = "write";
@@ -20,6 +24,7 @@ public class AuthTypeParser {
      * @return The authToken type string
      */
     public static String toString(String[] mPermissions) {
+        Log.v(TAG, "toString(" + mPermissions + ")");
         if (mPermissions == null || mPermissions.length < 1)
             return "";
         String string = mPermissions[0];
@@ -35,6 +40,7 @@ public class AuthTypeParser {
      * @return Array contains the permissions parsed
      */
     public static String[] parse(String authTokenType) {
+        Log.v(TAG, "parse(" + authTokenType + ")");
         if (authTokenType == null)
             return null;
         String[] parsed = authTokenType.split(":");
@@ -48,6 +54,7 @@ public class AuthTypeParser {
      * @return The result of check
      */
     public static boolean checkPermission(String authTokenType, String[] requestedPermission) {
+        Log.v(TAG, "checkPermission(" + authTokenType + "," + requestedPermission + ")");
         final String[] authTokenTypeParsed = parse(authTokenType);
         return checkPermission(authTokenTypeParsed, requestedPermission);
     }
@@ -59,6 +66,7 @@ public class AuthTypeParser {
      * @return The result of check
      */
     public static boolean checkPermission(String[] authTokenTypeParsed, String[] requestedPermission) {
+        Log.v(TAG, "checkPermission(" + authTokenTypeParsed + "," + requestedPermission + ")");
         for (String permission:requestedPermission) {
             if (!Arrays.asList(authTokenTypeParsed).contains(permission))
                 return false;
@@ -66,7 +74,13 @@ public class AuthTypeParser {
         return true;
     }
 
+    /**
+     * Check if the permissions are valid
+     * @param mPermissions Array of permissions to check
+     * @return Result of the check
+     */
     public static boolean isValid(String[] mPermissions) {
+        Log.v(TAG, "isValid(" + mPermissions + ")");
         for (String p:mPermissions) {
             if (!(p == BASIC_INFO ||
                     p == READ ||
