@@ -42,15 +42,6 @@ import fuji.ping.R;
  */
 public class LoginActivity extends AccountAuthenticatorActivity implements LoaderCallbacks<Cursor> {
 
-    public static final String PARAM_CONFIRMCREDENTIALS = "com.pingweb.ping.confirmCredentials";
-    public static final String PARAM_PASSWORD = "com.pingweb.ping.password";
-    public static final String PARAM_USERNAME = "com.pingweb.ping.username";
-    public static final String PARAM_AUTHTOKEN_TYPE = "com.pingweb.ping.authtokenType";
-
-    public static final String ARG_ACCOUNT_TYPE = "com.pingweb.ping.account_type";
-    public static final String ARG_AUTH_TYPE = "com.pingweb.ping.ARG_AUTH_TYPE";
-    public static final String ARG_IS_ADDING_NEW_ACCOUNT = "com.pingweb.ping.ARG_IS_ADDING_NEW_ACCOUNT";
-
     /**
      * A dummy authentication store containing known user names and passwords.
      * TODO: remove after connecting to a real authentication system.
@@ -120,12 +111,17 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Loade
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
 
+        // Checking intent for optional operation
+        Log.d(TAG, "Starting checking intent");
         mAccountManager = AccountManager.get(this);
-        Log.i(TAG, "loading data from Intent");
         final Intent intent = getIntent();
-        mUsername = intent.getStringExtra(PARAM_USERNAME);
-        if (!TextUtils.isEmpty(mUsername))
+        mUsername = intent.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+        if (!TextUtils.isEmpty(mUsername)) {
+            Log.i(TAG, "Email found, setting textbox to " + mUsername);
             mEmailView.setText(mUsername);
+        }
+
+        // TODO controllare intent
     }
 
     private void populateAutoComplete() {

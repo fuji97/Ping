@@ -12,7 +12,7 @@ public class AuthTypeParser {
     public static final String VIEW_PROFILE = "view_profile";
     public static final String EDIT_PROFILE = "edit_profile";
     public static final String SETTINGS = "settings";
-    public static final String FULL_ACCESS = BASIC_INFO + ":" + READ + ":" + WRITE + ":" + VIEW_PROFILE + ":" + EDIT_PROFILE + ":" + SETTINGS;
+    public static final String FULL_ACCESS = "full_access";
 
     /**
      * Convert an array of permissions in a authToken string type
@@ -73,7 +73,8 @@ public class AuthTypeParser {
                     p == WRITE ||
                     p == VIEW_PROFILE ||
                     p == EDIT_PROFILE ||
-                    p == SETTINGS
+                    p == SETTINGS ||
+                    p == FULL_ACCESS
                     )) {
                 return false;
             }

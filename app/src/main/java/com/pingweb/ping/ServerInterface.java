@@ -9,6 +9,7 @@ import android.util.Log;
  */
 public class ServerInterface {
     public final static String RESULT = "result";
+    public final static String ERROR_MESSAGE = "error_message";
     public final static String TOKEN = "token";
 
     public final static int ERROR_GENERAL = 0;
@@ -40,6 +41,7 @@ public class ServerInterface {
             intent.putExtra(TOKEN, DUMMY_TOKEN);
         } else {
             intent.putExtra(RESULT, WRONG_CREDENTIALS);
+            intent.putExtra(ERROR_MESSAGE, "Invalid credentials");
         }
         // TODO
         return intent;

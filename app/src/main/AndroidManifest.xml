@@ -22,6 +22,11 @@
             android:name="com.pingweb.ping.PingAuthenticatorService"
             android:enabled="true"
             android:exported="true" >
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator" />
+            </intent-filter>
+            <meta-data android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/authenticator" />
         </service>
 
         <activity
@@ -30,7 +35,6 @@
             android:theme="@style/loginTheme" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
