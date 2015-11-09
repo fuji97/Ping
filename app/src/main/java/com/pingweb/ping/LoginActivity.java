@@ -121,7 +121,11 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Loade
             mEmailView.setText(mUsername);
         }
 
-        // TODO controllare intent
+        final int errorCode = intent.getIntExtra(AccountManager.KEY_ERROR_CODE, -1);
+        if (errorCode != -1) {
+            // Error code found, retrieve message and make toast
+            final String errorMessage = intent.getStringExtra(AccountManager.KEY_ERROR_MESSAGE);
+        }
     }
 
     private void populateAutoComplete() {
