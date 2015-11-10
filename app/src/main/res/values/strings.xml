@@ -28,4 +28,5 @@
     <string name="wrong_credentials">Email or password is wrong</string>
     <string name="connection_error">Cannot connect to the server, check your Internet connection</string>
     <string name="general_error">Generic error:</string>
+    <string name="account_picker_dialog_title">Choose an account</string>
 </resources>

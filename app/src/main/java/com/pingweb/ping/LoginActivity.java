@@ -3,6 +3,7 @@ package com.pingweb.ping;
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorActivity;
 import android.accounts.AccountManager;
+import android.accounts.AccountManagerFuture;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
@@ -57,7 +58,8 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Loade
     private String mUsername;
     private String mAccountType;
     private Account mAccount;
-
+    private boolean resultOk;
+    private Intent mResponse;
 
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
@@ -86,6 +88,7 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Loade
     protected void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "onCreate(" + savedInstanceState + ")");
         super.onCreate(savedInstanceState);
+        resultOk = false;
         setContentView(R.layout.activity_login);
 
         // Set up the login form.
@@ -210,7 +213,7 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Loade
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(mUsername, mPassword, mAuthToken, mAccountType, mAccount);
+            mAuthTask = new UserLoginTask(mUsername, mPassword);
             mAuthTask.execute((Void) null);
         }
     }
@@ -223,6 +226,65 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Loade
     private boolean isPasswordValid(String password) {
         //TODO: Replace this with your own logic
         return password.length() > 4;
+
+    }
+    public void finishLogin(Intent response) {
+        final int resultCode = response.getIntExtra(ServerInterface.RESULT, -1);
+        Log.d(TAG, "finishLogin() with result code: " + resultCode);
+        if (resultCode == ServerInterface.RESULT_OK) {
+            if (mAccount != null) {
+                final String accountName = mAccountManager.getUserData(mAccount, AccountManager.KEY_ACCOUNT_NAME);
+                if (!TextUtils.equals(accountName, mUsername)) {
+                    final String currentAccountType = mAccountManager.getUserData(mAccount, AccountManager.KEY_ACCOUNT_TYPE);
+                    final String currentTokenType = mAccountManager.getUserData(mAccount, PingAuthenticator.ARG_AUTHTOKEN_TYPE);
+                    if (Build.VERSION.SDK_INT >= 22) {
+                        mAccountManager.removeAccountExplicitly(mAccount);
+                    } else {
+                        AccountManagerFuture<Boolean> deleteResult = mAccountManager.removeAccount(mAccount,null,null);
+                    }
+                    mAccount = new Account(mUsername, currentAccountType);
+                    Bundle bundle = new Bundle();
+                    bundle.putString(AccountManager.KEY_ACCOUNT_NAME, accountName);
+                    bundle.putString(PingAuthenticator.ARG_AUTHTOKEN_TYPE, mAuthToken);
+                    mAccountManager.addAccountExplicitly(mAccount, mPassword, bundle);
+                    //TODO
+                } else {
+                    mAccountManager.setPassword(mAccount,mPassword);
+                }
+            } else {
+                mAccount = new Account(mUsername, mAccountType);
+                Bundle bundle = new Bundle();
+                bundle.putString(AccountManager.KEY_ACCOUNT_NAME, mUsername);
+                bundle.putString(PingAuthenticator.ARG_AUTHTOKEN_TYPE, mAuthToken);
+                mAccountManager.addAccountExplicitly(mAccount, mPassword, bundle);
+            }
+            setAccountAuthenticatorResult(getIntent().getExtras());
+            setResult(RESULT_OK, response);
+            finish();
+        } else if (resultCode != -1) {
+            // Error code found, retrieve message and make toast
+            final String errorMessage = response.getStringExtra(ServerInterface.ERROR_MESSAGE);
+            Log.i(TAG, "Error during server login, error code: " + resultCode + " - Error message: " + errorMessage);
+            final Context context = getApplicationContext();
+            final int duration = Toast.LENGTH_LONG;
+            String toastText;
+            switch (resultCode) {
+                case ServerInterface.ERROR_CONNECTION:
+                    toastText = getString(R.string.connection_error);
+                    break;
+                case ServerInterface.WRONG_CREDENTIALS:
+                    toastText = getString(R.string.wrong_credentials);
+                    break;
+                default:
+                    toastText = getString(R.string.general_error) + errorMessage;
+            }
+            Toast toast = Toast.makeText(context, toastText, duration);
+            toast.show();
+            showProgress(false);
+        } else {
+            Log.wtf(TAG,"Missing result code",new IllegalArgumentException());
+            finish();
+        }
     }
 
     /**
@@ -349,21 +411,16 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Loade
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
      */
+    //TODO remove useless parameters
     public class UserLoginTask extends AsyncTask<Void, Void, Intent> {
 
         private final String email;
         private final String password;
-        private final String authType;
-        private final String accountType;
-        private Account account;
 
-        UserLoginTask(String mEmail, String mPassword, String mAuthType, String mAccountType, Account mAccount) {
+        UserLoginTask(String mEmail, String mPassword) {
             Log.d(TAG, "Started AsyncTask for login operation");
             email = mEmail;
             password = mPassword;
-            authType = mAuthType;
-            accountType = mAccountType;
-            account = mAccount;
         }
 
         @Override
@@ -374,35 +431,8 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Loade
 
         @Override
         protected void onPostExecute(final Intent response) {
-            final int resultCode = response.getIntExtra(AccountManager.KEY_ERROR_CODE, -1);
-            if (resultCode == ServerInterface.RESULT_OK) {
-                if (account != null) {
-                    final String accountName = mAccountManager.getUserData(account, AccountManager.KEY_ACCOUNT_NAME);
-                    if (!TextUtils.equals(accountName, email)) {
-                        final String currentAccountType = mAccountManager.getUserData(account, AccountManager.KEY_ACCOUNT_TYPE);
-                        final String currentTokenType = mAccountManager.getUserData(account, PingAuthenticator.ARG_AUTHTOKEN_TYPE);
-                        mAccountManager.removeAccountExplicitly(account);
-                        account = new Account(email, currentAccountType);
-                    }
-                }
-            } else if (resultCode != -1) {
-                // Error code found, retrieve message and make toast
-                final String errorMessage = response.getStringExtra(AccountManager.KEY_ERROR_MESSAGE);
-                Log.i(TAG, "Error during server login, error code: " + resultCode + " - Error message: " + errorMessage);
-                final Context context = getApplicationContext();
-                final int duration = Toast.LENGTH_LONG;
-                String toastText;
-                switch (resultCode) {
-                    case ServerInterface.ERROR_CONNECTION:
-                        toastText = getString(R.string.connection_error);
-                    case ServerInterface.WRONG_CREDENTIALS:
-                        toastText = getString(R.string.wrong_credentials);
-                    default:
-                        toastText = getString(R.string.general_error) + errorMessage;
-                }
-                Toast toast = Toast.makeText(context, toastText, duration);
-                toast.show();
-            }
+            Log.d(TAG, "Request completed, return response to the main thread");
+            finishLogin(response);
         }
 
         @Override

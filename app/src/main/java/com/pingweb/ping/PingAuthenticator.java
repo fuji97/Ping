@@ -50,6 +50,9 @@ public class PingAuthenticator extends AbstractAccountAuthenticator {
         final Intent intent = new Intent(mContext, LoginActivity.class);
         intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, accountType);
         intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
+        if (authTokenType == null) {
+            authTokenType = AuthTypeParser.FULL_ACCESS;
+        }
         intent.putExtra(ARG_AUTHTOKEN_TYPE, authTokenType);
         intent.putExtra(ARG_IS_ADDING_ACCOUNT, true);
         Bundle bundle = new Bundle();

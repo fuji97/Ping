@@ -18,4 +18,5 @@
     <string name="wrong_credentials">Email o password errata</string>
     <string name="connection_error">Impossibile connettersi al server, controlla la tua connessione a Internet</string>
     <string name="general_error">Errore generale: </string>
+    <string name="account_picker_dialog_title">Segli un account</string>
 </resources>

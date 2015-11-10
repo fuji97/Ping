@@ -25,6 +25,7 @@ public class ServerInterface {
     private static final String TAG = "ServerInterface";
 
     public final static Intent confirmCredentials(String mUsername, String mPassword) {
+        Log.d(TAG, "Confirm credentials to the server");
         final Intent intent = new Intent();
         if(TextUtils.equals(mUsername,DUMMY_USERNAME) && TextUtils.equals(mPassword,DUMMY_PASSWORD)) {
             intent.putExtra(RESULT, RESULT_OK);
